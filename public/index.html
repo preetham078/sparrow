@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Chat</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">Sparrow</div>
+        <div class="members">Online: <span id="online-count">1</span></div>
+        <div class="instructions">Enter your name and join the conversation.</div>
+        <div class="user-join">
+          <input id="name" placeholder="Your name" />
+          <button id="join">Join</button>
+        </div>
+      </aside>
+
+      <main class="chat">
+        <header class="chat-header">
+          <h1>Live Chat</h1>
+        </header>
+
+        <ul id="messages" class="messages"></ul>
+
+        <form id="form" class="composer">
+          <input id="input" autocomplete="off" placeholder="Write a message..." />
+          <button>Send</button>
+        </form>
+      </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+  </body>
+</html>
