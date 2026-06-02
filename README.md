@@ -31,4 +31,23 @@ Features:
 - Responsive, polished UI
 
 Next steps: add persistence (database), authentication, typing indicators, or deploy to a hosting provider.
+Supabase migration
+
+1. Create a Supabase project at https://app.supabase.com and open the SQL editor.
+2. Run the SQL in `supabase/create_messages_table.sql` to create the `messages` table.
+3. In your project settings -> API, copy the `URL` and the `anon public` key.
+4. Create a file `public/_env.js` (or configure your deploy to generate it) with:
+
+```js
+window.SUPABASE_URL = 'https://your-project-ref.supabase.co';
+window.SUPABASE_ANON_KEY = 'your-anon-public-key';
+```
+
+5. The frontend now uses Supabase Realtime to receive new messages and inserts messages directly into the `messages` table.
+
+Optional deploy via Supabase Hosting:
+
+- Install the Supabase CLI: https://supabase.com/docs/guides/cli
+- Run `supabase login` and `supabase link --project-ref YOUR_PROJECT_REF`.
+- From the repo root, deploy the `public` folder as a site. See Supabase Hosting docs for exact commands — you can also use the Supabase Dashboard to connect a GitHub repo for automatic deploys.
 
