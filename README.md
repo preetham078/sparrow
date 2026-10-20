@@ -1,5 +1,7 @@
 # sparrow — Live Chat App
 
+live here : https://preetham078.github.io/sparrow/
+
 Real-time web chat allowing members to join, see message history, and reply instantly with a polished UI.
 
 This project is a simple demo using Node.js, Express and Socket.IO.
