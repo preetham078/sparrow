@@ -14,11 +14,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 // In-memory message history (keeps last 200 messages)
 const history = [];
 
+// Broadcast current online count to everyone
+function broadcastOnlineCount() {
+  const count = io.engine.clientsCount;
+  io.emit('online count', count);
+}
+
 io.on('connection', (socket) => {
   let username = 'Anonymous';
 
-  // send history on connect
+  // Send history on connect
   socket.emit('history', history);
+
+  // Update online count for everyone
+  broadcastOnlineCount();
 
   socket.on('join', (name) => {
     username = name || username;
@@ -39,6 +48,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     socket.broadcast.emit('system', `${username} left the chat`);
+    // Update online count after disconnect
+    broadcastOnlineCount();
   });
 });
 

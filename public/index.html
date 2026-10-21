@@ -10,7 +10,7 @@
     <div class="app">
       <aside class="sidebar">
         <div class="brand">Sparrow</div>
-        <div class="members">Online: <span id="online-count">1</span></div>
+        <div class="members">Online: <span id="online-count">0</span></div>
         <div class="instructions">Enter your name and join the conversation.</div>
         <div class="user-join">
           <input id="name" placeholder="Your name" />
@@ -32,10 +32,8 @@
       </main>
     </div>
 
-    <!-- Supabase env (generated at deploy time) -->
-    <script src="_env.js"></script>
-    <!-- Supabase JS (UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
+    <!-- Socket.IO client (served automatically by the socket.io server) -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
   </body>
 </html>

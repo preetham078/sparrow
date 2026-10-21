@@ -1,20 +1,19 @@
-// Supabase-backed client
+// Socket.IO-backed client
 const form = document.getElementById('form');
 const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 const nameInput = document.getElementById('name');
 const joinBtn = document.getElementById('join');
+const onlineCount = document.getElementById('online-count');
 
 let me = null;
 
-// Ensure env variables exist
-if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-  console.error('Supabase env not found. Create _env.js with SUPABASE_URL and SUPABASE_ANON_KEY');
-}
+// Connect to the Socket.IO server
+const socket = io();
 
-const supabase = window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
+// --- Helpers ---
 
-function addMessage(item){
+function addMessage(item) {
   const li = document.createElement('li');
   li.className = 'msg' + (item.user === me ? ' me' : '');
 
@@ -24,7 +23,7 @@ function addMessage(item){
   meta.textContent = `${item.user || 'Guest'} • ${time}`;
 
   const text = document.createElement('div');
-  text.textContent = item.text || item.body || '';
+  text.textContent = item.text || '';
 
   li.appendChild(meta);
   li.appendChild(text);
@@ -32,62 +31,55 @@ function addMessage(item){
   messages.scrollTop = messages.scrollHeight;
 }
 
-async function loadHistory(){
-  if (!supabase) return;
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .order('time', { ascending: true })
-    .limit(200);
-  if (error) return console.error(error);
+function addSystemMessage(text) {
+  const li = document.createElement('li');
+  li.className = 'msg system';
+  li.textContent = text;
+  messages.appendChild(li);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// --- Socket Events ---
+
+// Receive chat history on connect
+socket.on('history', (history) => {
   messages.innerHTML = '';
-  (data || []).forEach(addMessage);
-}
+  history.forEach(addMessage);
+});
 
-async function subscribe(){
-  if (!supabase) return;
-  try{
-    // Realtime subscription for new messages
-    const channel = supabase.channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        addMessage(payload.new);
-      });
-    await channel.subscribe();
-  }catch(err){
-    // Fallback for older client versions
-    try{
-      supabase.from('messages').on('INSERT', payload => addMessage(payload.new)).subscribe();
-    }catch(e){
-      console.error('Realtime subscription failed', e);
-    }
-  }
-}
+// Receive new chat messages from other users (and self, via broadcast)
+socket.on('chat message', (item) => {
+  addMessage(item);
+});
 
-joinBtn.addEventListener('click', (e) => {
-  const name = nameInput.value.trim() || 'Guest';
+// System messages (user joined / left)
+socket.on('system', (text) => {
+  addSystemMessage(text);
+});
+
+// Online user count updates
+socket.on('online count', (count) => {
+  onlineCount.textContent = count;
+});
+
+// --- UI Events ---
+
+joinBtn.addEventListener('click', () => {
+  const name = nameInput.value.trim();
+  if (!name) return;
   me = name;
   nameInput.disabled = true;
   joinBtn.disabled = true;
+
+  // Tell the server our name
+  socket.emit('join', name);
 });
 
-form.addEventListener('submit', async (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
-  if (!input.value) return;
-  const payload = {
-    user: me || 'Guest',
-    text: input.value,
-    time: new Date().toISOString(),
-  };
-  if (supabase) {
-    const { error } = await supabase.from('messages').insert([payload]);
-    if (error) console.error(error);
-  } else {
-    // fallback: append locally
-    addMessage(payload);
-  }
+  if (!input.value || !me) return;
+
+  // Send message via Socket.IO
+  socket.emit('chat message', input.value);
   input.value = '';
 });
-
-// Initialize
-loadHistory();
-subscribe();
